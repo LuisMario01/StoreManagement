@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -94,4 +95,15 @@ public class MainController {
 	    String json = gson.toJson(product);
 	    return json;   
 	}
+	
+	//Delete a product by id
+	@Transactional
+		@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
+		@ResponseBody
+		public boolean deleteProduct(@PathVariable("product")String idProduct) {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			int product = Integer.parseInt(idProduct);
+			productRepository.deleteByIdProduct(product);	
+		    return true;   
+		}
 }
