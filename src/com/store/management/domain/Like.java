@@ -2,9 +2,12 @@ package com.store.management.domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -18,9 +21,32 @@ public class Like {
 	private Integer idLike;
 	
 	@Column(name="id_product")
-	private Integer idProduct;
+	private Integer product;
 	
 	@Column(name="id_user")
-	private Integer idUser;
+	private Integer user;
 
+	public Integer getIdLike() {
+		return idLike;
+	}
+
+	public void setIdLike(Integer idLike) {
+		this.idLike = idLike;
+	}
+
+	public Integer getIdProduct() {
+		return product;
+	}
+
+	public void setIdProduct(Integer product) {
+		this.product = product;
+	}
+
+	public Integer getUser() {
+		return user;
+	}
+
+	public void setUser(Integer user) {
+		this.user = user;
+	}
 }
