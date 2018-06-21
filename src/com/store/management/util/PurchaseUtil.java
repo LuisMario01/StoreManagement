@@ -15,12 +15,4 @@ public class PurchaseUtil {
 		purchase.setDate(new Date());
 		return purchase;
 	}
-
-	/*
-	 * 		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd/mm/yyyy");
-		
-		cal.setTime(sdf.parse(dto.getFcompra()));
-	 * 
-	 * */
 }

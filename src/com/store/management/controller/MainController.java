@@ -3,7 +3,6 @@ package com.store.management.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Like;
 import com.store.management.domain.Product;
+import com.store.management.domain.ProductLog;
 import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
@@ -29,9 +28,11 @@ import com.store.management.dto.LikeDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
 import com.store.management.repository.LikeRepository;
+import com.store.management.repository.ProductLogRepository;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
+import com.store.management.util.ProductLogUtil;
 import com.store.management.util.PurchaseUtil;
 /*
  * Class MainController - Contains methods that receive requests and show data accordingly 
@@ -50,6 +51,9 @@ public class MainController {
 	
 	@Autowired
 	private LikeRepository likeRepository;
+	
+	@Autowired
+	private ProductLogRepository productLogRepository;
 	
 	//Login method
 	//See readme to have instances of admin/user credentials
@@ -214,12 +218,21 @@ public class MainController {
 		try {
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			Product buyingProduct = new Product();
-			buyingProduct = productRepository.save(product);
+			buyingProduct = productRepository.findOne(product.getIdProduct());
+			
 			if(buyingProduct!=null)
 			{
-				return gson.toJson(buyingProduct);
+				Double previousPrice = buyingProduct.getPrice();
+				buyingProduct = productRepository.save(product);
+				if(buyingProduct!=null) {
+					ProductLog productLog = ProductLogUtil.createProductLog(buyingProduct, previousPrice);
+					productLog = productLogRepository.save(productLog);
+					if(productLog!=null) return gson.toJson(buyingProduct);
+					else return "Log no guardado";
+				}
+				else return "Producto no guardado";
 			}
-			else return "Producto no guardado";
+			else return "Producto no encontrado";
 		}
 		catch(Exception e) {
 			return null;

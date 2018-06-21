@@ -11,6 +11,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 	public Product save(Product product);
 	
 	//Searching
+	public Product findOne(Integer idProduct);
 	public boolean exists(Integer id);
 	public Product findByProduct(String product);
 	
