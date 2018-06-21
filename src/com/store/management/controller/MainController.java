@@ -20,12 +20,15 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.store.management.domain.Like;
 import com.store.management.domain.Product;
 import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
+import com.store.management.dto.LikeDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
+import com.store.management.repository.LikeRepository;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
@@ -44,6 +47,9 @@ public class MainController {
 	
 	@Autowired
 	private PurchaseRepository purchaseRepository;
+	
+	@Autowired
+	private LikeRepository likeRepository;
 	
 	//Login method
 	//See readme to have instances of admin/user credentials
@@ -171,6 +177,29 @@ public class MainController {
 				}
 			}
 			else return "Producto no existente";
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+	
+	//Liking a product
+	@Transactional
+	@RequestMapping(value="/products/likeProduct", method=RequestMethod.POST)
+	@ResponseBody
+	public String likeProduct(@RequestBody LikeDTO likeDTO) {
+		try {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			Like newLike = new Like();
+			newLike.setIdProduct(likeDTO.getIdProduct());
+			newLike.setUser(likeDTO.getIdUser());
+			newLike = likeRepository.save(newLike);
+			if(newLike!=null) {
+				return gson.toJson(newLike);
+			}
+			else {
+				return null;
+			}
 		}
 		catch(Exception e) {
 			return null;

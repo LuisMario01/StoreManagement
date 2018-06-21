@@ -16,7 +16,7 @@ import javax.persistence.Table;
 public class Like {
 	@Id
 	@GeneratedValue(generator="likes_id_like_seq", strategy = GenerationType.IDENTITY)
-	@SequenceGenerator(name = "likes_id_like_seq", sequenceName = "store.likes_id_like_seq")
+	@SequenceGenerator(name = "likes_id_like_seq", sequenceName = "store.likes_id_like_seq", allocationSize = 1)
 	@Column(name = "id_like")
 	private Integer idLike;
 	
