@@ -16,7 +16,7 @@ import javax.persistence.Table;
 @Table(schema = "store", name = "store_user")
 public class User {
 	@Id
-	@GeneratedValue(generator="store_user_id_user_seq", strategy = GenerationType.AUTO)
+	@GeneratedValue(generator="store_user_id_user_seq", strategy = GenerationType.IDENTITY)
 	@SequenceGenerator(name = "store_user_id_user_seq", sequenceName = "store.store_user_id_user_seq")
 	@Column(name = "id_user")
 	private Integer idUser;

@@ -15,7 +15,7 @@ import javax.persistence.Table;
 @Table(schema = "store", name = "likes")
 public class Like {
 	@Id
-	@GeneratedValue(generator="likes_id_like_seq", strategy = GenerationType.AUTO)
+	@GeneratedValue(generator="likes_id_like_seq", strategy = GenerationType.IDENTITY)
 	@SequenceGenerator(name = "likes_id_like_seq", sequenceName = "store.likes_id_like_seq")
 	@Column(name = "id_like")
 	private Integer idLike;
