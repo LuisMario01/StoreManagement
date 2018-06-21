@@ -40,6 +40,7 @@ public class MainController {
 	private UserRepository userRepository;
 	
 	//Login method
+	//See readme to have instances of admin/user credentials
 	@RequestMapping(value = "/login", method=RequestMethod.POST)
 	public ResponseEntity<String> login(@RequestBody Login login) {
 		User user = userRepository.findByUsername(login.getUsername());
@@ -138,9 +139,9 @@ public class MainController {
 		}
 	}
 	
-	//Buy a product - Will be performed with an id.
+	//Buying a product - Performed with a DTO object of the purchase.
 	@Transactional
-	@RequestMapping(value="/products/addProduct", method=RequestMethod.PUT)
+	@RequestMapping(value="/products/buyProduct", method=RequestMethod.PUT)
 	@ResponseBody
 	public String buyProduct(@RequestBody BuyDTO purchaseDTO) {
 		try {
@@ -152,6 +153,7 @@ public class MainController {
 				if(newStock>=0) {
 					buyingProduct.setStock(newStock); //Setting new stock
 					buyingProduct = productRepository.save(buyingProduct);
+					//Here should be the queries that also triggers the purchase table.
 					return gson.toJson(buyingProduct);
 				}
 				else {

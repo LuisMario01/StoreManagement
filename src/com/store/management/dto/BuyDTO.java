@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 public class BuyDTO {
 	private Integer idProduct;
+	private Integer idUser;
 	private Integer amount;
 	private Calendar date;
 
@@ -13,6 +14,14 @@ public class BuyDTO {
 
 	public void setIdProduct(Integer idProduct) {
 		this.idProduct = idProduct;
+	}
+	
+	public Integer getIdUser() {
+		return idUser;
+	}
+
+	public void setIdUser(Integer idUser) {
+		this.idUser = idUser;
 	}
 
 	public Integer getAmount() {
