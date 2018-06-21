@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.store.management.domain.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+	//Saving
+	public Product save(Product product);
 	
 	//Searching
 	public boolean exists(Integer id);

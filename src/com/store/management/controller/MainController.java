@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import com.store.management.domain.Product;
 import com.store.management.domain.User;
 import com.store.management.dto.Login;
+import com.store.management.dto.ProductDTO;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.UserRepository;
 /*
@@ -37,6 +38,24 @@ public class MainController {
 	@Autowired
 	private UserRepository userRepository;
 	
+	//Login method
+	@RequestMapping(value = "/login", method=RequestMethod.POST)
+	public ResponseEntity<String> login(@RequestBody Login login) {
+		User user = userRepository.findByUsername(login.getUsername());
+		if(user!=null) {
+			if(login.getUsername().equals(user.getUsername()) && login.getPassword().equals(user.getPassword())) {
+				//TODO Token creation
+				return new ResponseEntity<>("Ok", HttpStatus.OK);
+			}
+			else {			
+				return new ResponseEntity<>("Incorrect credentials", HttpStatus.BAD_REQUEST);
+			}
+		}
+		else {
+			return new ResponseEntity<>("Not found", HttpStatus.BAD_REQUEST);
+		}
+	}
+	
 	//Showing all available products
 	@CrossOrigin
 	@RequestMapping(value = {"/products"}, 
@@ -47,25 +66,6 @@ public class MainController {
 		List<Product> products = productRepository.findAll();
 		String json = gson.toJson(products);
 		return json;
-	}
-	
-	//Login method
-	@RequestMapping(value = "/login", method=RequestMethod.POST)
-	public ResponseEntity<String> login(@RequestBody Login login) {
-		User user = userRepository.findByUsername(login.getUsername());
-		if(user!=null) {
-			if(login.getUsername().equals(user.getUsername()) && login.getPassword().equals(user.getPassword())) {
-				return new ResponseEntity<>("Ok", HttpStatus.OK);
-				//Token creation
-			}
-			else {
-				
-				return new ResponseEntity<>("Incorrect credentials", HttpStatus.BAD_REQUEST);
-			}
-		}
-		else {
-			return new ResponseEntity<>("Not found", HttpStatus.BAD_REQUEST);
-		}
 	}
 	
 	//Showing all available products ascendantly sorted by product name. 
@@ -118,20 +118,34 @@ public class MainController {
 	}
 	
 	//Save a product
-	@RequestMapping(value="/products/addProduct/", method=RequestMethod.POST)
+	@Transactional
+	@RequestMapping(value="/products/addProduct", method=RequestMethod.POST)
 	@ResponseBody
-	public String saveProduct(@RequestParam("")String id) {
-		return "";
+	public String saveProduct(@RequestBody ProductDTO productDTO) {
+		try {
+			Product savingProduct = new Product();
+			savingProduct.setProduct(productDTO.getProduct());
+			savingProduct.setPrice(productDTO.getPrice());
+			savingProduct.setStock(productDTO.getStock());
+			Product result = new Product();
+			result = productRepository.save(savingProduct);
+			return "SAVED: "+result.getProduct();
+		}
+		catch(Exception e) {
+			return e.getMessage();
+		}
 	}
+	
+	//@RequestBody Login login
 	
 	//Delete a product by id
 	@Transactional
-		@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
-		@ResponseBody
-		public boolean deleteProduct(@PathVariable("product")String idProduct) {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			int product = Integer.parseInt(idProduct);
-			productRepository.deleteByIdProduct(product);	
-		    return true;   
-		}
+	@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
+	@ResponseBody
+	public boolean deleteProduct(@PathVariable("product")String idProduct) {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		int product = Integer.parseInt(idProduct);
+		productRepository.deleteByIdProduct(product);	
+	    return true;   
+	}
 }

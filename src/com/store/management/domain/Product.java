@@ -1,14 +1,11 @@
 package com.store.management.domain;
 
-import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -16,8 +13,8 @@ import javax.persistence.Table;
 @Table(schema = "store", name = "product")
 public class Product {
 	@Id
-	@GeneratedValue(generator="product_id_product_seq", strategy = GenerationType.AUTO)
-	@SequenceGenerator(name = "product_id_product_seq", sequenceName = "store.product_id_product_seq")
+	@GeneratedValue(generator="product_id_product_seq", strategy = GenerationType.IDENTITY)
+	@SequenceGenerator(name = "product_id_product_seq", sequenceName = "store.product_id_product_seq", allocationSize=1)
 	@Column(name = "id_product")
 	private Integer idProduct;
 	
