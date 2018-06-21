@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Product;
 import com.store.management.domain.User;
+import com.store.management.dto.BuyDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
 import com.store.management.repository.ProductRepository;
@@ -123,20 +124,46 @@ public class MainController {
 	@ResponseBody
 	public String saveProduct(@RequestBody ProductDTO productDTO) {
 		try {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			Product savingProduct = new Product();
 			savingProduct.setProduct(productDTO.getProduct());
 			savingProduct.setPrice(productDTO.getPrice());
 			savingProduct.setStock(productDTO.getStock());
 			Product result = new Product();
 			result = productRepository.save(savingProduct);
-			return "SAVED: "+result.getProduct();
+			return gson.toJson(result); //Shows just-saved product
 		}
 		catch(Exception e) {
-			return e.getMessage();
+			return null;
 		}
 	}
 	
-	//@RequestBody Login login
+	//Buy a product - Will be performed with an id.
+	@Transactional
+	@RequestMapping(value="/products/addProduct", method=RequestMethod.PUT)
+	@ResponseBody
+	public String buyProduct(@RequestBody BuyDTO purchaseDTO) {
+		try {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			Product buyingProduct = new Product();
+			buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
+			if(buyingProduct!=null) {
+				int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
+				if(newStock>=0) {
+					buyingProduct.setStock(newStock); //Setting new stock
+					buyingProduct = productRepository.save(buyingProduct);
+					return gson.toJson(buyingProduct);
+				}
+				else {
+					return "Error: no hay suficientes en stock";
+				}
+			}
+			else return "Producto no existente";
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
 	
 	//Delete a product by id
 	@Transactional
