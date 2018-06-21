@@ -21,12 +21,15 @@ import org.springframework.web.servlet.ModelAndView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Product;
+import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
 import com.store.management.repository.ProductRepository;
+import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
+import com.store.management.util.PurchaseUtil;
 /*
  * Class MainController - Contains methods that receive requests and show data accordingly 
  * */
@@ -38,6 +41,9 @@ public class MainController {
 	
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private PurchaseRepository purchaseRepository;
 	
 	//Login method
 	//See readme to have instances of admin/user credentials
@@ -147,14 +153,18 @@ public class MainController {
 		try {
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			Product buyingProduct = new Product();
+			Purchase newPurchase = new Purchase();
 			buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
 			if(buyingProduct!=null) {
 				int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
 				if(newStock>=0) {
 					buyingProduct.setStock(newStock); //Setting new stock
 					buyingProduct = productRepository.save(buyingProduct);
-					//Here should be the queries that also triggers the purchase table.
-					return gson.toJson(buyingProduct);
+					newPurchase = purchaseRepository.save(PurchaseUtil.createPurchase(purchaseDTO));
+					if(newPurchase!=null && buyingProduct != null)
+						return gson.toJson(buyingProduct);
+					else
+						return "Error transaccion no completada";
 				}
 				else {
 					return "Error: no hay suficientes en stock";

@@ -1,6 +1,5 @@
 package com.store.management.domain;
-
-import java.util.Calendar;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,7 +29,7 @@ public class Purchase {
 	private Integer amount;
 	
 	@Column(name="purchasedate")
-	private Calendar date;
+	private Date date;
 	
 	public Integer getIdPurchase() {
 		return idPurchase;
@@ -56,10 +55,10 @@ public class Purchase {
 	public void setAmount(Integer amount) {
 		this.amount = amount;
 	}
-	public Calendar getDate() {
+	public Date getDate() {
 		return date;
 	}
-	public void setDate(Calendar date) {
+	public void setDate(Date date) {
 		this.date = date;
 	}
 }
