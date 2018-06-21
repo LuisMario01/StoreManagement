@@ -206,6 +206,26 @@ public class MainController {
 		}
 	}
 	
+	//Updating product price.
+	@Transactional
+	@RequestMapping(value="/products/updateProduct", method=RequestMethod.PUT)
+	@ResponseBody
+	public String alterProductPrice(@RequestBody Product product) {
+		try {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			Product buyingProduct = new Product();
+			buyingProduct = productRepository.save(product);
+			if(buyingProduct!=null)
+			{
+				return gson.toJson(buyingProduct);
+			}
+			else return "Producto no guardado";
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
+	
 	//Delete a product by id
 	@Transactional
 	@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
