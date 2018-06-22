@@ -1,10 +1,11 @@
 package com.store.management.controller;
 
-import java.io.UnsupportedEncodingException;
+
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Like;
@@ -41,6 +36,7 @@ import com.store.management.repository.ProductLogRepository;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
+import com.store.management.util.Encryption;
 import com.store.management.util.ProductLogUtil;
 import com.store.management.util.PurchaseUtil;
 /*
@@ -67,24 +63,14 @@ public class MainController {
 	//Login method
 	//See readme to have instances of admin/user credentials
 	@RequestMapping(value = "/login", method=RequestMethod.POST)
-	public ResponseEntity<String> login(@RequestBody Login login) throws IllegalArgumentException, UnsupportedEncodingException {
+	public ResponseEntity<String> login(@RequestBody Login login){
 		User user = userRepository.findByUsername(login.getUsername());
 		if(user!=null) {
 			if(login.getUsername().equals(user.getUsername()) && login.getPassword().equals(user.getPassword())) {
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
 				String json = gson.toJson(user);
-				//Token creation with HMAC256 algorithm
-				try {
-				    Algorithm algorithm = Algorithm.HMAC256("fj32Jfv02Mq33g0f8ioDkw");		
-				    String token = JWT.create().withIssuer("auth0").
-				    		withClaim("userid", user.getIdUser()).withClaim("role", user.getRole()).sign(algorithm);
-				    return new ResponseEntity<>(token, HttpStatus.OK);
-				    
-				} catch (JWTCreationException exception){
-				    return null;
-				}
-				
-				//End of token creation
+				byte[] bytesEncoded = Base64.encodeBase64(json.getBytes());
+				return new ResponseEntity<>(new String(bytesEncoded), HttpStatus.OK);
 			}
 			else {			
 				return new ResponseEntity<>("Incorrect credentials", HttpStatus.BAD_REQUEST);
@@ -100,26 +86,11 @@ public class MainController {
 	@RequestMapping(value = {"/products"}, 
 	method = RequestMethod.GET)
 	@ResponseBody
-	public String showAllProducts(HttpServletRequest request) throws IllegalArgumentException, UnsupportedEncodingException {
-		
-		String token = request.getHeader("token");
-		System.out.println("************"+token);
-		try {
-		    Algorithm algorithm = Algorithm.HMAC256("secret");
-		    JWTVerifier verifier = JWT.require(algorithm)
-                    .withIssuer("auth0")
-                    .build();//Reusable verifier instance
-		    DecodedJWT jwt = verifier.verify(token);
-		    return jwt.getClaim("role").asString();
-		    
-		} catch (Exception exception){
-		    return exception.getMessage();
-		}
-		
-		/*Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	public String showAllProducts(HttpServletRequest request){
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		List<Product> products = productRepository.findAll();
 		String json = gson.toJson(products);
-		return json;*/
+		return json;
 	}
 	
 	//Showing all available products ascendantly sorted by product name. 
@@ -175,19 +146,29 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value="/products/addProduct", method=RequestMethod.POST)
 	@ResponseBody
-	public String saveProduct(@RequestBody ProductDTO productDTO) {
+	public String saveProduct(HttpServletRequest request, @RequestBody ProductDTO productDTO) {	
 		try {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			Product savingProduct = new Product();
-			savingProduct.setProduct(productDTO.getProduct());
-			savingProduct.setPrice(productDTO.getPrice());
-			savingProduct.setStock(productDTO.getStock());
-			Product result = new Product();
-			result = productRepository.save(savingProduct);
-			return gson.toJson(result); //Shows just-saved product
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			
+			if(user.getRole()==1) {
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Product savingProduct = new Product();
+				savingProduct.setProduct(productDTO.getProduct());
+				savingProduct.setPrice(productDTO.getPrice());
+				savingProduct.setStock(productDTO.getStock());
+				Product result = new Product();
+				result = productRepository.save(savingProduct);
+				return gson.toJson(result); //Shows just-saved product*/
+			}
+			else {
+				return "Not allowed";
+			}
+			
 		}
 		catch(Exception e) {
-			return null;
+			return e.getMessage();
 		}
 	}
 	
@@ -279,10 +260,18 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public boolean deleteProduct(@PathVariable("product")String idProduct) {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		int product = Integer.parseInt(idProduct);
-		productRepository.deleteByIdProduct(product);	
-	    return true;   
+	public boolean deleteProduct(HttpServletRequest request, @PathVariable("product")String idProduct) {
+		byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+		Gson usrGson = new Gson();
+		User user= usrGson.fromJson(new String(valueDecoded), User.class);
+		
+		if(user.getRole()==1) {
+			int product = Integer.parseInt(idProduct);
+			productRepository.deleteByIdProduct(product);	
+		    return true;   
+		}
+		else {
+			return false;
+		}
 	}
 }
