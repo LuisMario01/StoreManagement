@@ -1,8 +1,11 @@
 package com.store.management.repository;
 
 import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.store.management.domain.Product;
 
@@ -21,6 +24,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 	
 	//Listing methods
 	public List<Product> findAll();
+	
+	@Query(value="select p.id_product, p.product, p.stock, p.price, count(l.id_like) likes from store.product p \r\n" + 
+			"FULL JOIN store.likes l ON p.id_product = l.id_product GROUP BY (p.id_product) ORDER by likes\n-- #pageable\n", nativeQuery=true)
+	public List<Object> findAllSortedByLikes(Pageable page);
 	
 	public List<Product> findAllByOrderByProductDesc();
 	public List<Product> findAllByOrderByProductAsc();

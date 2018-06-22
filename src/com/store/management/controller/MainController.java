@@ -1,6 +1,7 @@
 package com.store.management.controller;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,7 @@ import com.store.management.dto.BuyDTO;
 import com.store.management.dto.LikeDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
+import com.store.management.dto.ProductLikes;
 import com.store.management.repository.LikeRepository;
 import com.store.management.repository.ProductLogRepository;
 import com.store.management.repository.ProductRepository;
@@ -88,7 +91,7 @@ public class MainController {
 	@ResponseBody
 	public String showAllProducts(HttpServletRequest request){
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		List<Product> products = productRepository.findAll();
+		List<Product> products = productRepository.findAllByOrderByProductAsc();
 		String json = gson.toJson(products);
 		return json;
 	}
@@ -117,16 +120,13 @@ public class MainController {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		int sort = Integer.parseInt(sortType);
 		int pageNumber = Integer.parseInt(pageid);
-		String json = "";
-		//Sorting type, sort=0 for name sorting
-		//				sort=1 for likes sorting
-		if(sort==0) {
+		String json = "";		
+		if(sort==0) {//Sorting type, sort=0 for name sorting
 			List<Product> products = productRepository.findAllByOrderByProductAsc(new PageRequest(pageNumber-1, 3));
 			json = gson.toJson(products);
 		}
-		else {
-			//TODO: Do sorting using likes amount
-			List<Product> products = productRepository.findAllByOrderByProductDesc(new PageRequest(pageNumber-1, 3));
+		else if(sort==1) { //sort=1 for likes sorting
+			List<Object> products = productRepository.findAllSortedByLikes(new PageRequest(pageNumber-1, 3));
 			json = gson.toJson(products);
 		}
 		return json;
@@ -163,9 +163,8 @@ public class MainController {
 				return gson.toJson(result); //Shows just-saved product*/
 			}
 			else {
-				return "Not allowed";
-			}
-			
+				return "Not allowed here";
+			}		
 		}
 		catch(Exception e) {
 			return e.getMessage();
@@ -176,31 +175,39 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value="/products/buyProduct", method=RequestMethod.PUT)
 	@ResponseBody
-	public String buyProduct(@RequestBody BuyDTO purchaseDTO) {
+	public String buyProduct(HttpServletRequest request, @RequestBody BuyDTO purchaseDTO) {
 		try {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			Product buyingProduct = new Product();
-			Purchase newPurchase = new Purchase();
-			buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
-			if(buyingProduct!=null) {
-				int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
-				if(newStock>=0) {
-					buyingProduct.setStock(newStock); //Setting new stock
-					buyingProduct = productRepository.save(buyingProduct);
-					newPurchase = purchaseRepository.save(PurchaseUtil.createPurchase(purchaseDTO));
-					if(newPurchase!=null && buyingProduct != null)
-						return gson.toJson(buyingProduct);
-					else
-						return "Error transaccion no completada";
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			if(user.getRole()==1 || user.getRole()==2) {
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Product buyingProduct = new Product();
+				Purchase newPurchase = new Purchase();
+				buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
+				if(buyingProduct!=null) {
+					int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
+					if(newStock>=0) {
+						buyingProduct.setStock(newStock); //Setting new stock
+						buyingProduct = productRepository.save(buyingProduct);
+						newPurchase = purchaseRepository.save(PurchaseUtil.createPurchase(purchaseDTO));
+						if(newPurchase!=null && buyingProduct != null)
+							return gson.toJson(buyingProduct);
+						else
+							return "Error transaccion no completada";
+					}
+					else {
+						return "Error: no hay suficientes en stock";
+					}
 				}
-				else {
-					return "Error: no hay suficientes en stock";
-				}
+				else return "Producto no existente";
 			}
-			else return "Producto no existente";
+			else {
+				return "Not allowed";
+			}
 		}
 		catch(Exception e) {
-			return null;
+			return "Error when buying a product";
 		}
 	}
 	
@@ -208,22 +215,30 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value="/products/likeProduct", method=RequestMethod.POST)
 	@ResponseBody
-	public String likeProduct(@RequestBody LikeDTO likeDTO) {
+	public String likeProduct(HttpServletRequest request, @RequestBody LikeDTO likeDTO) {
 		try {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			Like newLike = new Like();
-			newLike.setIdProduct(likeDTO.getIdProduct());
-			newLike.setUser(likeDTO.getIdUser());
-			newLike = likeRepository.save(newLike);
-			if(newLike!=null) {
-				return gson.toJson(newLike);
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			if(user.getRole()==1 || user.getRole()==2) {
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Like newLike = new Like();
+				newLike.setIdProduct(likeDTO.getIdProduct());
+				newLike.setUser(likeDTO.getIdUser());
+				newLike = likeRepository.save(newLike);
+				if(newLike!=null) {
+					return gson.toJson(newLike);
+				}
+				else {
+					return "Not allowed";
+				}
 			}
 			else {
-				return null;
+				return "Not allowed";
 			}
 		}
 		catch(Exception e) {
-			return null;
+			return "Not allowed";
 		}
 	}
 	
@@ -231,32 +246,44 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value="/products/updateProduct", method=RequestMethod.PUT)
 	@ResponseBody
-	public String alterProductPrice(@RequestBody Product product) {
-		try {
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			Product buyingProduct = new Product();
-			buyingProduct = productRepository.findOne(product.getIdProduct());
-			
-			if(buyingProduct!=null)
-			{
-				Double previousPrice = buyingProduct.getPrice();
-				buyingProduct = productRepository.save(product);
-				if(buyingProduct!=null) {
-					ProductLog productLog = ProductLogUtil.createProductLog(buyingProduct, previousPrice);
-					productLog = productLogRepository.save(productLog);
-					if(productLog!=null) return gson.toJson(buyingProduct);
-					else return "Log no guardado";
+	public String alterProductPrice(HttpServletRequest request, @RequestBody Product product) {
+		if(request.getHeader("toke")!=null) {
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			if(user.getRole()==1) {
+				try {
+					Gson gson = new GsonBuilder().setPrettyPrinting().create();
+					Product buyingProduct = new Product();
+					buyingProduct = productRepository.findOne(product.getIdProduct());
+					
+					if(buyingProduct!=null)
+					{
+						Double previousPrice = buyingProduct.getPrice();
+						buyingProduct = productRepository.save(product);
+						if(buyingProduct!=null) {
+							ProductLog productLog = ProductLogUtil.createProductLog(buyingProduct, previousPrice);
+							productLog = productLogRepository.save(productLog);
+							if(productLog!=null) return gson.toJson(buyingProduct);
+							else return "Log no guardado";
+						}
+						else return "Producto no guardado";
+					}
+					else return "Producto no encontrado";
 				}
-				else return "Producto no guardado";
+				catch(Exception e) {
+					return null;
+				}
 			}
-			else return "Producto no encontrado";
+			else {
+				return "Not allowed";
+			}
 		}
-		catch(Exception e) {
-			return null;
-		}
+		else return "Not allowed";
 	}
 	
-	//Delete a product by id
+	//Delete a product by id.
+	//Only admins can delete a product.
 	@Transactional
 	@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
 	@ResponseBody
@@ -266,9 +293,14 @@ public class MainController {
 		User user= usrGson.fromJson(new String(valueDecoded), User.class);
 		
 		if(user.getRole()==1) {
+			try {
 			int product = Integer.parseInt(idProduct);
 			productRepository.deleteByIdProduct(product);	
-		    return true;   
+		    return true;
+		    }
+			catch(Exception e) {
+				return false;
+			}
 		}
 		else {
 			return false;
