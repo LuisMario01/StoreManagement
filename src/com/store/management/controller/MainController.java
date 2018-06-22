@@ -20,8 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Like;
@@ -72,11 +75,9 @@ public class MainController {
 				String json = gson.toJson(user);
 				//Token creation with HMAC256 algorithm
 				try {
-				    Algorithm algorithm = Algorithm.HMAC256(json);		
-				    String token = JWT.create().
-				    		withClaim("userid", user.getIdUser()).
-				    		withClaim("role", user.getRole()).
-				    		sign(algorithm);
+				    Algorithm algorithm = Algorithm.HMAC256("fj32Jfv02Mq33g0f8ioDkw");		
+				    String token = JWT.create().withIssuer("auth0").
+				    		withClaim("userid", user.getIdUser()).withClaim("role", user.getRole()).sign(algorithm);
 				    return new ResponseEntity<>(token, HttpStatus.OK);
 				    
 				} catch (JWTCreationException exception){
@@ -99,11 +100,26 @@ public class MainController {
 	@RequestMapping(value = {"/products"}, 
 	method = RequestMethod.GET)
 	@ResponseBody
-	public String showAllProducts(){
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	public String showAllProducts(HttpServletRequest request) throws IllegalArgumentException, UnsupportedEncodingException {
+		
+		String token = request.getHeader("token");
+		System.out.println("************"+token);
+		try {
+		    Algorithm algorithm = Algorithm.HMAC256("secret");
+		    JWTVerifier verifier = JWT.require(algorithm)
+                    .withIssuer("auth0")
+                    .build();//Reusable verifier instance
+		    DecodedJWT jwt = verifier.verify(token);
+		    return jwt.getClaim("role").asString();
+		    
+		} catch (Exception exception){
+		    return exception.getMessage();
+		}
+		
+		/*Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		List<Product> products = productRepository.findAll();
 		String json = gson.toJson(products);
-		return json;
+		return json;*/
 	}
 	
 	//Showing all available products ascendantly sorted by product name. 
