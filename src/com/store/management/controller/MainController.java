@@ -126,7 +126,7 @@ public class MainController {
 			json = gson.toJson(products);
 		}
 		else if(sort==1) { //sort=1 for likes sorting
-			List<Object> products = productRepository.findAllSortedByLikes(new PageRequest(pageNumber-1, 3));
+			List<Object> products = productRepository.findAllSortedByLikes();
 			json = gson.toJson(products);
 		}
 		return json;
@@ -149,6 +149,7 @@ public class MainController {
 	public String saveProduct(HttpServletRequest request, @RequestBody ProductDTO productDTO) {	
 		try {
 			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			System.out.println(new String(valueDecoded));
 			Gson usrGson = new Gson();
 			User user= usrGson.fromJson(new String(valueDecoded), User.class);
 			
@@ -224,7 +225,7 @@ public class MainController {
 				Gson gson = new GsonBuilder().setPrettyPrinting().create();
 				Like newLike = new Like();
 				newLike.setIdProduct(likeDTO.getIdProduct());
-				newLike.setUser(likeDTO.getIdUser());
+				newLike.setUser(user.getIdUser());
 				newLike = likeRepository.save(newLike);
 				if(newLike!=null) {
 					return gson.toJson(newLike);
@@ -247,7 +248,7 @@ public class MainController {
 	@RequestMapping(value="/products/updateProduct", method=RequestMethod.PUT)
 	@ResponseBody
 	public String alterProductPrice(HttpServletRequest request, @RequestBody Product product) {
-		if(request.getHeader("toke")!=null) {
+		if(request.getHeader("token")!=null) {
 			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
 			Gson usrGson = new Gson();
 			User user= usrGson.fromJson(new String(valueDecoded), User.class);
@@ -299,6 +300,7 @@ public class MainController {
 		    return true;
 		    }
 			catch(Exception e) {
+				System.out.println(e.getMessage());
 				return false;
 			}
 		}
