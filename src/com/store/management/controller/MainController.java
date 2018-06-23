@@ -101,12 +101,9 @@ public class MainController {
 			params = {"pageNumber"}, 
 			method = RequestMethod.GET)
 	@ResponseBody
-	public String showAllProductsDefault(@RequestParam("pageNumber") String pageid){
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		int pageNumber = Integer.parseInt(pageid);
-		List<Product> products = productRepository.findAllByOrderByProductAsc(new PageRequest(pageNumber-1, 3));
-		String json = gson.toJson(products);
-		return json;
+	public ResponseEntity<String> showAllProductsDefault(@RequestParam("pageNumber") String pageid){
+		ResponseEntity<String> results = productService.showAllProductsDefault(pageid);
+		return results;
 	}
 	
 	//Showing all available products ascendantly sorted by product name. 
