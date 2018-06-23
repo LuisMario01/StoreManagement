@@ -3,9 +3,7 @@ package com.store.management.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,16 +15,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
 import com.store.management.domain.Product;
-import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
 import com.store.management.dto.LikeDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
-import com.store.management.repository.UserRepository;
 import com.store.management.service.ProductService;
+import com.store.management.service.UserService;
 
 /*
  * Class MainController - Contains methods that receive requests and show data accordingly 
@@ -37,28 +33,16 @@ public class MainController {
 	private ProductService productService;
 	
 	@Autowired
-	private UserRepository userRepository;
+	private UserService userService;
 	
 
 	//Login method
 	//See readme to have instances of admin/user credentials
+	//Everyone can access login
 	@RequestMapping(value = "/login", method=RequestMethod.POST)
 	public ResponseEntity<String> login(@RequestBody Login login){
-		User user = userRepository.findByUsername(login.getUsername());
-		if(user!=null) {
-			if(login.getUsername().equals(user.getUsername()) && login.getPassword().equals(user.getPassword())) {
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				String json = gson.toJson(user);
-				byte[] bytesEncoded = Base64.encodeBase64(json.getBytes());
-				return new ResponseEntity<>(new String(bytesEncoded), HttpStatus.OK);
-			}
-			else {			
-				return new ResponseEntity<>("Incorrect credentials", HttpStatus.BAD_REQUEST);
-			}
-		}
-		else {
-			return new ResponseEntity<>("Not found", HttpStatus.BAD_REQUEST);
-		}
+		ResponseEntity<String> results = userService.login(login);
+		return results;
 	}
 	
 	//Showing all available products
