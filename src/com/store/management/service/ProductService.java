@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.store.management.domain.Like;
 import com.store.management.domain.Product;
 import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
+import com.store.management.dto.LikeDTO;
 import com.store.management.dto.ProductDTO;
+import com.store.management.repository.LikeRepository;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.PurchaseRepository;
 import com.store.management.util.PurchaseUtil;
@@ -33,6 +36,9 @@ public class ProductService {
 	
 	@Autowired
 	private PurchaseRepository purchaseRepository;
+	
+	@Autowired
+	private LikeRepository likeRepository;
 	
 	public ResponseEntity<String> showAllProducts(){
 		try {
@@ -147,7 +153,34 @@ public class ProductService {
 				else return new ResponseEntity<>("Product doesn't exists", HttpStatus.NO_CONTENT);
 			}
 			else {
-				return new ResponseEntity<>("Transaction not completed", HttpStatus.UNAUTHORIZED);
+				return new ResponseEntity<>("Not allowed", HttpStatus.UNAUTHORIZED);
+			}
+		}
+		catch(Exception e) {
+			return new ResponseEntity<>("Transaction not completed", HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	public ResponseEntity<String> likeProduct(HttpServletRequest request, LikeDTO likeDTO) {
+		try {
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			if(user.getRole()==1 || user.getRole()==2) {
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Like newLike = new Like();
+				newLike.setIdProduct(likeDTO.getIdProduct());
+				newLike.setUser(user.getIdUser());
+				newLike = likeRepository.save(newLike);
+				if(newLike!=null) {
+					return new ResponseEntity<>(gson.toJson(newLike), HttpStatus.OK);
+				}
+				else {
+					return new ResponseEntity<>("Transaction not completed", HttpStatus.NO_CONTENT);
+				}
+			}
+			else {
+				return new ResponseEntity<>("Not allowed", HttpStatus.UNAUTHORIZED);
 			}
 		}
 		catch(Exception e) {

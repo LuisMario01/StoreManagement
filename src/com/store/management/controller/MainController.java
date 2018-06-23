@@ -148,31 +148,9 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value="/products/likeProduct", method=RequestMethod.POST)
 	@ResponseBody
-	public String likeProduct(HttpServletRequest request, @RequestBody LikeDTO likeDTO) {
-		try {
-			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
-			Gson usrGson = new Gson();
-			User user= usrGson.fromJson(new String(valueDecoded), User.class);
-			if(user.getRole()==1 || user.getRole()==2) {
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				Like newLike = new Like();
-				newLike.setIdProduct(likeDTO.getIdProduct());
-				newLike.setUser(user.getIdUser());
-				newLike = likeRepository.save(newLike);
-				if(newLike!=null) {
-					return gson.toJson(newLike);
-				}
-				else {
-					return "Not allowed";
-				}
-			}
-			else {
-				return "Not allowed";
-			}
-		}
-		catch(Exception e) {
-			return "Not allowed";
-		}
+	public ResponseEntity<String> likeProduct(HttpServletRequest request, @RequestBody LikeDTO likeDTO) {
+		ResponseEntity<String> results = productService.likeProduct(request, likeDTO);
+		return results;
 	}
 	
 	//Updating product price.
