@@ -6,13 +6,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -231,6 +229,32 @@ public class ProductService {
 				}
 			}
 			else return new ResponseEntity<>("Not allowed", HttpStatus.BAD_REQUEST);
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>("Not allowed", HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	public ResponseEntity<String> deleteProduct(HttpServletRequest request, String idProduct) {
+		try {
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			
+			if(user.getRole()==1) {
+				try {
+				int product = Integer.parseInt(idProduct);
+				productRepository.deleteByIdProduct(product);	
+			    return new ResponseEntity<>("Done", HttpStatus.OK);
+			    }
+				catch(DataAccessException e) {
+					System.out.println(e.getMessage());
+					return new ResponseEntity<>("Product not found", HttpStatus.NO_CONTENT);
+				}
+			}
+			else {
+				return new ResponseEntity<>("Not allowed", HttpStatus.UNAUTHORIZED);
+			}
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 			return new ResponseEntity<>("Not allowed", HttpStatus.BAD_REQUEST);

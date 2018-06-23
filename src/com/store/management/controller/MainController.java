@@ -1,14 +1,10 @@
 package com.store.management.controller;
 
 
-
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,24 +19,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.store.management.domain.Like;
 import com.store.management.domain.Product;
-import com.store.management.domain.ProductLog;
-import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
 import com.store.management.dto.BuyDTO;
 import com.store.management.dto.LikeDTO;
 import com.store.management.dto.Login;
 import com.store.management.dto.ProductDTO;
-import com.store.management.dto.ProductLikes;
-import com.store.management.repository.LikeRepository;
-import com.store.management.repository.ProductLogRepository;
-import com.store.management.repository.ProductRepository;
-import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
 import com.store.management.service.ProductService;
-import com.store.management.util.ProductLogUtil;
-import com.store.management.util.PurchaseUtil;
+
 /*
  * Class MainController - Contains methods that receive requests and show data accordingly 
  * */
@@ -50,20 +37,9 @@ public class MainController {
 	private ProductService productService;
 	
 	@Autowired
-	private ProductRepository productRepository;
-	
-	@Autowired
 	private UserRepository userRepository;
 	
-	@Autowired
-	private PurchaseRepository purchaseRepository;
-	
-	@Autowired
-	private LikeRepository likeRepository;
-	
-	@Autowired
-	private ProductLogRepository productLogRepository;
-	
+
 	//Login method
 	//See readme to have instances of admin/user credentials
 	@RequestMapping(value = "/login", method=RequestMethod.POST)
@@ -168,24 +144,8 @@ public class MainController {
 	@Transactional
 	@RequestMapping(value = "/products/{product}", method = RequestMethod.DELETE)
 	@ResponseBody
-	public boolean deleteProduct(HttpServletRequest request, @PathVariable("product")String idProduct) {
-		byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
-		Gson usrGson = new Gson();
-		User user= usrGson.fromJson(new String(valueDecoded), User.class);
-		
-		if(user.getRole()==1) {
-			try {
-			int product = Integer.parseInt(idProduct);
-			productRepository.deleteByIdProduct(product);	
-		    return true;
-		    }
-			catch(Exception e) {
-				System.out.println(e.getMessage());
-				return false;
-			}
-		}
-		else {
-			return false;
-		}
+	public ResponseEntity<String> deleteProduct(HttpServletRequest request, @PathVariable("product")String idProduct) {
+		ResponseEntity<String> results = productService.deleteProduct(request, idProduct);
+		return results;
 	}
 }
