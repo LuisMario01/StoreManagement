@@ -1,0 +1,343 @@
+{
+	"info": {
+		"_postman_id": "d5f40f3b-ba22-46c3-83c5-6c9c904eb8aa",
+		"name": "Snack store - REST API",
+		"description": "Set of collections to test StoreManagement REST API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Login - admin",
+			"request": {
+				"auth": {
+					"type": "bearer"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"admin\",\n\t\"password\": \"password\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"login"
+					]
+				},
+				"description": "Example of login with \"admin\" username, returns a 64-bit encoded string that will be used to authenticate in the following requests. Role: admin"
+			},
+			"response": []
+		},
+		{
+			"name": "Login - user",
+			"request": {
+				"auth": {
+					"type": "bearer"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"user\",\n\t\"password\": \"password\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"login"
+					]
+				},
+				"description": "Example of login with \"user\" username, returns a 64-bit encoded string that will be used to authenticate in the following requests. Role: user"
+			},
+			"response": []
+		},
+		{
+			"name": "Listing all products - Sort by name, page 1",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products?sortType=0&pageNumber=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products"
+					],
+					"query": [
+						{
+							"key": "sortType",
+							"value": "0"
+						},
+						{
+							"key": "pageNumber",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Showing all products available in database from page 1, to view more pages change the parameter to 2 or 3 (shows 3 products per page). No authentication needed"
+			},
+			"response": []
+		},
+		{
+			"name": "Listing all products - Sorted by likes amound.",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products?sortType=1&pageNumber=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products"
+					],
+					"query": [
+						{
+							"key": "sortType",
+							"value": "1"
+						},
+						{
+							"key": "pageNumber",
+							"value": "1"
+						}
+					]
+				},
+				"description": "Shows the list of all products connecting each stored product with the amount of likes that it has been given. No authentication needed."
+			},
+			"response": []
+		},
+		{
+			"name": "Search a product",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/Cashews",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"Cashews"
+					]
+				},
+				"description": "Searches through the list of products to find one with the name that matches the parameter given. No auth required."
+			},
+			"response": []
+		},
+		{
+			"name": "Add a product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "token",
+						"value": "ewogICJpZFVzZXIiOiAxLAogICJ1c2VybmFtZSI6ICJhZG1pbiIsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkIiwKICAicm9sZSI6IDEKfQ=="
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"product\": \"Chocolate\", \"price\": 1.0, \"stock\": 180 }"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/addProduct",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"addProduct"
+					]
+				},
+				"description": "Adds a product to the database given its id. Returns JSON representation of product just saved."
+			},
+			"response": []
+		},
+		{
+			"name": "Update product price",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "token",
+						"value": "ewogICJpZFVzZXIiOiAxLAogICJ1c2VybmFtZSI6ICJhZG1pbiIsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkIiwKICAicm9sZSI6IDEKfQ=="
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"idProduct\": 2,\n  \"product\": \"Cashews\",\n  \"price\": 14.0,\n  \"stock\": 80\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/updateProduct",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"updateProduct"
+					]
+				},
+				"description": "Deletes a product using its id. Firstly check if the product exists in the database. Admin auth required."
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a product",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "token",
+						"value": "ewogICJpZFVzZXIiOiAxLAogICJ1c2VybmFtZSI6ICJhZG1pbiIsCiAgInBhc3N3b3JkIjogInBhc3N3b3JkIiwKICAicm9sZSI6IDEKfQ=="
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/3",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"3"
+					]
+				},
+				"description": "Deletes a product using its id. Firstly check if the product exists in the database. Admin auth required."
+			},
+			"response": []
+		},
+		{
+			"name": "Purchase product",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "token",
+						"value": "ewogICJpZFVzZXIiOiAyLAogICJ1c2VybmFtZSI6ICJ1c2VyIiwKICAicGFzc3dvcmQiOiAicGFzc3dvcmQiLAogICJyb2xlIjogMgp9"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"idProduct\": 2,\n\t\"idUser\": 3,\n\t\"amount\": 4,\n\t\"date\":\"2018-06-22\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/buyProduct",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"buyProduct"
+					]
+				},
+				"description": "User purchases a product. Authorization required, but allowed to both admins and users."
+			},
+			"response": []
+		},
+		{
+			"name": "Like a product",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "token",
+						"value": "ewogICJpZFVzZXIiOiAyLAogICJ1c2VybmFtZSI6ICJ1c2VyIiwKICAicGFzc3dvcmQiOiAicGFzc3dvcmQiLAogICJyb2xlIjogMgp9"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"idProduct\": 4\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/StoreManagement/products/likeProduct",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"StoreManagement",
+						"products",
+						"likeProduct"
+					]
+				},
+				"description": "Logged user can like a product. Auth is required but admits both admin and user."
+			},
+			"response": []
+		}
+	]
+}
