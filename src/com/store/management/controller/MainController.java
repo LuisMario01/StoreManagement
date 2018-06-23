@@ -1,7 +1,7 @@
 package com.store.management.controller;
 
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -39,7 +38,7 @@ import com.store.management.repository.ProductLogRepository;
 import com.store.management.repository.ProductRepository;
 import com.store.management.repository.PurchaseRepository;
 import com.store.management.repository.UserRepository;
-import com.store.management.util.Encryption;
+import com.store.management.service.ProductService;
 import com.store.management.util.ProductLogUtil;
 import com.store.management.util.PurchaseUtil;
 /*
@@ -47,6 +46,8 @@ import com.store.management.util.PurchaseUtil;
  * */
 @Controller
 public class MainController {
+	@Autowired
+	private ProductService productService;
 	
 	@Autowired
 	private ProductRepository productRepository;
@@ -89,11 +90,9 @@ public class MainController {
 	@RequestMapping(value = {"/products"}, 
 	method = RequestMethod.GET)
 	@ResponseBody
-	public String showAllProducts(HttpServletRequest request){
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		List<Product> products = productRepository.findAllByOrderByProductAsc();
-		String json = gson.toJson(products);
-		return json;
+	public ResponseEntity<String> showAllProducts(HttpServletRequest request){
+		ResponseEntity<String> results = productService.showAllProducts();
+		return results;
 	}
 	
 	//Showing all available products ascendantly sorted by product name. 
