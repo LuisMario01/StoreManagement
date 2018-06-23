@@ -112,20 +112,9 @@ public class MainController {
 				params = {"sortType", "pageNumber"}, 
 				method = RequestMethod.GET)
 	@ResponseBody
-	public String showAllProductsSortedByName(@RequestParam("sortType") String sortType, @RequestParam("pageNumber") String pageid){
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		int sort = Integer.parseInt(sortType);
-		int pageNumber = Integer.parseInt(pageid);
-		String json = "";		
-		if(sort==0) {//Sorting type, sort=0 for name sorting
-			List<Product> products = productRepository.findAllByOrderByProductAsc(new PageRequest(pageNumber-1, 3));
-			json = gson.toJson(products);
-		}
-		else if(sort==1) { //sort=1 for likes sorting
-			List<Object> products = productRepository.findAllSortedByLikes();
-			json = gson.toJson(products);
-		}
-		return json;
+	public ResponseEntity<String> showAllProductsSortedByName(@RequestParam("sortType") String sortType, @RequestParam("pageNumber") String pageid){
+		ResponseEntity<String> results = productService.showAllProductsSortedByName(sortType, pageid);
+		return results;
 	}
 	
 	//Show one product searching it by name

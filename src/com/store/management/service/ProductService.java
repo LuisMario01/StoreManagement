@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.google.gson.Gson;
@@ -62,6 +63,18 @@ public class ProductService {
 		}catch(Exception e) {
 			System.out.println(e.getMessage());
 			return new ResponseEntity<>("Error when loading results", HttpStatus.NO_CONTENT);
+		}
+	}
+	
+	public ResponseEntity<String> showProductByName(String productParam) {
+		try {
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			Product product = productRepository.findByProduct(productParam);
+		    String json = gson.toJson(product);
+		    return new ResponseEntity<>(json, HttpStatus.OK);
+		}catch(Exception e) {
+			System.out.println(e.getMessage());
+			return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
 		}
 	}
 	
