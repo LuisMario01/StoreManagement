@@ -135,43 +135,13 @@ public class MainController {
 	}
 	
 	//Buying a product - Performed with a DTO object of the purchase.
+	//Requires admin authorization
 	@Transactional
 	@RequestMapping(value="/products/buyProduct", method=RequestMethod.PUT)
 	@ResponseBody
-	public String buyProduct(HttpServletRequest request, @RequestBody BuyDTO purchaseDTO) {
-		try {
-			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
-			Gson usrGson = new Gson();
-			User user= usrGson.fromJson(new String(valueDecoded), User.class);
-			if(user.getRole()==1 || user.getRole()==2) {
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				Product buyingProduct = new Product();
-				Purchase newPurchase = new Purchase();
-				buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
-				if(buyingProduct!=null) {
-					int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
-					if(newStock>=0) {
-						buyingProduct.setStock(newStock); //Setting new stock
-						buyingProduct = productRepository.save(buyingProduct);
-						newPurchase = purchaseRepository.save(PurchaseUtil.createPurchase(purchaseDTO));
-						if(newPurchase!=null && buyingProduct != null)
-							return gson.toJson(buyingProduct);
-						else
-							return "Error transaccion no completada";
-					}
-					else {
-						return "Error: no hay suficientes en stock";
-					}
-				}
-				else return "Producto no existente";
-			}
-			else {
-				return "Not allowed";
-			}
-		}
-		catch(Exception e) {
-			return "Error when buying a product";
-		}
+	public ResponseEntity<String> buyProduct(HttpServletRequest request, @RequestBody BuyDTO purchaseDTO) {
+		ResponseEntity<String> results = productService.buyProduct(request, purchaseDTO);
+		return results;
 	}
 	
 	//Liking a product

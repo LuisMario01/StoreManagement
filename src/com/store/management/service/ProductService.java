@@ -17,15 +17,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.store.management.domain.Product;
+import com.store.management.domain.Purchase;
 import com.store.management.domain.User;
+import com.store.management.dto.BuyDTO;
 import com.store.management.dto.ProductDTO;
 import com.store.management.repository.ProductRepository;
+import com.store.management.repository.PurchaseRepository;
+import com.store.management.util.PurchaseUtil;
 
 @Service
 public class ProductService {
 	
 	@Autowired
 	private ProductRepository productRepository;
+	
+	@Autowired
+	private PurchaseRepository purchaseRepository;
 	
 	public ResponseEntity<String> showAllProducts(){
 		try {
@@ -109,6 +116,42 @@ public class ProductService {
 		catch(Exception e) {
 			System.out.println(e.getMessage());
 			return new ResponseEntity<>("Product not saved", HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	public ResponseEntity<String> buyProduct(HttpServletRequest request, BuyDTO purchaseDTO) {
+		try {
+			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
+			Gson usrGson = new Gson();
+			User user= usrGson.fromJson(new String(valueDecoded), User.class);
+			if(user.getRole()==1 || user.getRole()==2) {
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Product buyingProduct = new Product();
+				Purchase newPurchase = new Purchase();
+				buyingProduct = productRepository.findOne(purchaseDTO.getIdProduct());
+				if(buyingProduct!=null) {
+					int newStock = buyingProduct.getStock()-purchaseDTO.getAmount(); //Decreasing stock w/purchase
+					if(newStock>=0) {
+						buyingProduct.setStock(newStock); //Setting new stock
+						buyingProduct = productRepository.save(buyingProduct);
+						newPurchase = purchaseRepository.save(PurchaseUtil.createPurchase(purchaseDTO));
+						if(newPurchase!=null && buyingProduct != null)
+							return new ResponseEntity<>(gson.toJson(buyingProduct), HttpStatus.OK);
+						else
+							return new ResponseEntity<>("Transaction not completed", HttpStatus.NO_CONTENT);
+					}
+					else {
+						return new ResponseEntity<>("Insufficient stock", HttpStatus.BAD_REQUEST);
+					}
+				}
+				else return new ResponseEntity<>("Product doesn't exists", HttpStatus.NO_CONTENT);
+			}
+			else {
+				return new ResponseEntity<>("Transaction not completed", HttpStatus.UNAUTHORIZED);
+			}
+		}
+		catch(Exception e) {
+			return new ResponseEntity<>("Transaction not completed", HttpStatus.BAD_REQUEST);
 		}
 	}
 	
