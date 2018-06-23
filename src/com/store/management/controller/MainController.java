@@ -120,41 +120,18 @@ public class MainController {
 	//Show one product searching it by name
 	@RequestMapping(value = "/products/{product}", method = RequestMethod.GET)
 	@ResponseBody
-	public String showProductByName(@PathVariable("product")String productParam) {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		Product product = productRepository.findByProduct(productParam);
-	    String json = gson.toJson(product);
-	    return json;   
+	public ResponseEntity<String> showProductByName(@PathVariable("product")String productParam) {
+		ResponseEntity<String> results = productService.showProductByName(productParam);
+		return results;   
 	}
 	
 	//Save a product
 	@Transactional
 	@RequestMapping(value="/products/addProduct", method=RequestMethod.POST)
 	@ResponseBody
-	public String saveProduct(HttpServletRequest request, @RequestBody ProductDTO productDTO) {	
-		try {
-			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
-			System.out.println(new String(valueDecoded));
-			Gson usrGson = new Gson();
-			User user= usrGson.fromJson(new String(valueDecoded), User.class);
-			
-			if(user.getRole()==1) {
-				Gson gson = new GsonBuilder().setPrettyPrinting().create();
-				Product savingProduct = new Product();
-				savingProduct.setProduct(productDTO.getProduct());
-				savingProduct.setPrice(productDTO.getPrice());
-				savingProduct.setStock(productDTO.getStock());
-				Product result = new Product();
-				result = productRepository.save(savingProduct);
-				return gson.toJson(result); //Shows just-saved product*/
-			}
-			else {
-				return "Not allowed here";
-			}		
-		}
-		catch(Exception e) {
-			return e.getMessage();
-		}
+	public ResponseEntity<String> saveProduct(HttpServletRequest request, @RequestBody ProductDTO productDTO) {	
+		ResponseEntity<String> results = productService.saveProduct(request, productDTO);
+		return results;
 	}
 	
 	//Buying a product - Performed with a DTO object of the purchase.
