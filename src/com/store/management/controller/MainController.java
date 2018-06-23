@@ -154,43 +154,13 @@ public class MainController {
 	}
 	
 	//Updating product price.
+	//Authorization required
 	@Transactional
 	@RequestMapping(value="/products/updateProduct", method=RequestMethod.PUT)
 	@ResponseBody
-	public String alterProductPrice(HttpServletRequest request, @RequestBody Product product) {
-		if(request.getHeader("token")!=null) {
-			byte[] valueDecoded = Base64.decodeBase64(request.getHeader("token"));
-			Gson usrGson = new Gson();
-			User user= usrGson.fromJson(new String(valueDecoded), User.class);
-			if(user.getRole()==1) {
-				try {
-					Gson gson = new GsonBuilder().setPrettyPrinting().create();
-					Product buyingProduct = new Product();
-					buyingProduct = productRepository.findOne(product.getIdProduct());
-					
-					if(buyingProduct!=null)
-					{
-						Double previousPrice = buyingProduct.getPrice();
-						buyingProduct = productRepository.save(product);
-						if(buyingProduct!=null) {
-							ProductLog productLog = ProductLogUtil.createProductLog(buyingProduct, previousPrice);
-							productLog = productLogRepository.save(productLog);
-							if(productLog!=null) return gson.toJson(buyingProduct);
-							else return "Log no guardado";
-						}
-						else return "Producto no guardado";
-					}
-					else return "Producto no encontrado";
-				}
-				catch(Exception e) {
-					return null;
-				}
-			}
-			else {
-				return "Not allowed";
-			}
-		}
-		else return "Not allowed";
+	public ResponseEntity<String> alterProductPrice(HttpServletRequest request, @RequestBody Product product) {
+		ResponseEntity<String> results = productService.alterProductPrice(request, product);
+		return results;
 	}
 	
 	//Delete a product by id.
